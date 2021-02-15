@@ -17,7 +17,9 @@ def scrape_all():
         "news_paragraph": news_paragraph,
         "featured_image": featured_image(browser),
         "facts": mars_facts(),
-        "last_modified": dt.datetime.now()
+        "last_modified": dt.datetime.now(),
+        "img_url": url, 
+        "title": page_title_url
     }
 
     # Stop webdriver and return data
@@ -94,6 +96,35 @@ def mars_facts():
 
     # Convert dataframe into HTML format, add bootstrap
     return df.to_html(classes="table table-striped")
+
+def hemispheres_data():
+    
+    # 1. Use browser to visit the URL 
+    url = 'https://astrogeology.usgs.gov/search/results?q=hemisphere+enhanced&k1=target&v1=Mars'
+    browser.visit(url)
+
+    html = browser.html
+    url_soup = soup(html, 'html.parser')
+
+    hemisphere_image_url = [{'img_url': url, 'title': page_title_url}]
+
+    hemispheres_url = url_soup.find_all('div', class_='description')
+
+    for url in hemispheres_url:
+        hemispheres = {}
+        try:
+            page_title_url = url.find('a', class_="itemLink product-item").text
+            image_url = url.a['href']
+            url = f'https://astropedia.astrogeology.usgs.gov/download/Mars/Viking{image_url}'
+            
+        # if(page_title_url and image_url):
+            hemispheres["img_url"] = url
+            hemispheres["title"] = page_title_url
+        
+        except AttributeError as e:
+                print(e)
+
+        return hemisphere_image_url
 
 if __name__ == "__main__":
 
